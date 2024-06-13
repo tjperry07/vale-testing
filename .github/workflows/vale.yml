@@ -1,22 +1,56 @@
-name: Vale Reviewdog
-on: [pull_request]
+name: Vale Lint
+
+on:
+  pull_request:
+    paths:
+      - '**/*.md'
+
 jobs:
   vale:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0  # Fetch all history so we can access all commits
 
-      - name: Install Vale
-        run: |
-          curl -sfL https://install.goreleaser.com/github.com/errata-ai/vale.sh | sh
+    - name: Install jq
+      run: sudo apt-get install -y jq
 
-      - name: Install Reviewdog
-        run: |
-          curl -sfL https://raw.githubusercontent.com/reviewdog/reviewdog/master/install.sh | sh -s -- -b /usr/local/bin
+    - name: Get changed files
+      id: changed-files
+      run: |
+        BASE_SHA=$(git merge-base origin/${{ github.event.pull_request.base.ref }} ${{ github.sha }})
+        CHANGED_FILES=$(git diff --name-only $BASE_SHA ${{ github.sha }} -- '*.md')
+        echo "CHANGED_FILES=$CHANGED_FILES" >> $GITHUB_ENV
+        echo "::set-output name=files::$(echo $CHANGED_FILES | jq -R -s -c 'split("\n")[:-1]')"
 
-      - name: Run Vale
-        run: |
-          vale . | reviewdog -efm="%f:%l:%c: %m" -name="vale" -reporter=github-pr-review -level=error
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Print Changed Files
+      run: echo $CHANGED_FILES
+
+    - name: Install Vale
+      uses: errata-ai/vale-action@v2
+
+    - name: Install Reviewdog
+      uses: reviewdog/action-setup@v1
+      with:
+        reviewdog_version: latest
+
+    - name: Run Vale on changed files with reviewdog
+      run: |
+        for file in $(echo ${{ steps.changed-files.outputs.files }} | jq -r '.[]'); do
+          vale --output=JSON $file | reviewdog -f=vale -name="Vale" -reporter=github-pr-review -level=warning -filter-mode=nofilter
+        done
+      env:
+        REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Run Vale with code suggester
+      run: |
+        for file in $(echo ${{ steps.changed-files.outputs.files }} | jq -r '.[]'); do
+          vale --output=JSON $file > vale_output.json
+          jq '.[] | .file = "'$file'"' vale_output.json | jq -s . > rdjson_output.json
+          reviewdog -f=rdjson -name="Vale" -reporter=github-pr-review -level=warning -filter-mode=nofilter < rdjson_output.json
+        done
+      env:
+        REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
