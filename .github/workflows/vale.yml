@@ -1,40 +1,29 @@
 name: Vale Linter
-
-on: [pull_request]
+on:
+  pull_request:
+  workflow_dispatch:
 
 jobs:
-  lint:
-    name: Run Vale and Reviewdog
+  vale:
+    name: vale action
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Get Changed Files
+        id: get_changed_files
+        uses: tj-actions/changed-files@v44
+        with:
+          files: |
+            **.md
+          separator: ","
+      - name: Print Changed Markdown Files
+        run: |
+          echo "Changed markdown files: ${{ steps.get_changed_files.outputs.all_changed_files }}"
 
-    - name: Set up Vale
-      uses: reviewdog/action-setup@v1
-      with:
-        tool: 'vale'
-        vale_version: 'latest' # Specify the version you need
-
-    - name: Run Vale
-      id: vale
-      run: |
-        vale --output=JSON . > vale_output.json
-
-    - name: Install reviewdog
-      uses: reviewdog/action-setup@v1
-      with:
-        reviewdog_version: 'latest'
-
-    - name: Run reviewdog
-      uses: reviewdog/action-reviewdog@v1
-      with:
-        name: 'vale'
-        reporter: 'github-pr-check'
-        level: 'error'
-        filter_mode: 'added'
-        fail_on_error: true
-        reviewdog_flags: '-f=vale'
-        input: 'vale_output.json'
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Vale Action
+        uses: errata-ai/vale-action@reviewdog
+        with:
+          files: ${{ steps.get_changed_files.outputs.all_changed_files }}
+          filter_mode: diff_context
+          separator: ","
