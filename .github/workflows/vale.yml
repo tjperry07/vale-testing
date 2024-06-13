@@ -1,56 +1,40 @@
-name: Vale Lint
+name: Vale Linter
 
-on:
-  pull_request:
-    paths:
-      - '**/*.md'
+on: [pull_request]
 
 jobs:
-  vale:
+  lint:
+    name: Run Vale and Reviewdog
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
-      with:
-        fetch-depth: 0  # Fetch all history so we can access all commits
+      uses: actions/checkout@v2
 
-    - name: Install jq
-      run: sudo apt-get install -y jq
-
-    - name: Get changed files
-      id: changed-files
-      run: |
-        BASE_SHA=$(git merge-base origin/${{ github.event.pull_request.base.ref }} ${{ github.sha }})
-        CHANGED_FILES=$(git diff --name-only $BASE_SHA ${{ github.sha }} -- '*.md')
-        echo "CHANGED_FILES=$CHANGED_FILES" >> $GITHUB_ENV
-        echo "::set-output name=files::$(echo $CHANGED_FILES | jq -R -s -c 'split("\n")[:-1]')"
-
-    - name: Print Changed Files
-      run: echo $CHANGED_FILES
-
-    - name: Install Vale
-      uses: errata-ai/vale-action@v2
-
-    - name: Install Reviewdog
+    - name: Set up Vale
       uses: reviewdog/action-setup@v1
       with:
-        reviewdog_version: latest
+        tool: 'vale'
+        vale_version: 'latest' # Specify the version you need
 
-    - name: Run Vale on changed files with reviewdog
+    - name: Run Vale
+      id: vale
       run: |
-        for file in $(echo ${{ steps.changed-files.outputs.files }} | jq -r '.[]'); do
-          vale --output=JSON $file | reviewdog -f=vale -name="Vale" -reporter=github-pr-review -level=warning -filter-mode=diff_context
-        done
-      env:
-        REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        vale --output=JSON . > vale_output.json
 
-    - name: Run Vale with code suggester
-      run: |
-        for file in $(echo ${{ steps.changed-files.outputs.files }} | jq -r '.[]'); do
-          vale --output=JSON $file > vale_output.json
-          jq '.[] | .file = "'$file'"' vale_output.json | jq -s . > rdjson_output.json
-          reviewdog -f=rdjson -name="Vale" -reporter=github-pr-review -level=warning -filter-mode=diff_context < rdjson_output.json
-        done
-      env:
-        REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Install reviewdog
+      uses: reviewdog/action-setup@v1
+      with:
+        reviewdog_version: 'latest'
+
+    - name: Run reviewdog
+      uses: reviewdog/action-reviewdog@v1
+      with:
+        name: 'vale'
+        reporter: 'github-pr-check'
+        level: 'error'
+        filter_mode: 'added'
+        fail_on_error: true
+        reviewdog_flags: '-f=vale'
+        input: 'vale_output.json'
+        github_token: ${{ secrets.GITHUB_TOKEN }}
