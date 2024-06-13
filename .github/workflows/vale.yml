@@ -1,0 +1,22 @@
+name: Vale Reviewdog
+on: [pull_request]
+jobs:
+  vale:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install Vale
+        run: |
+          curl -sfL https://install.goreleaser.com/github.com/errata-ai/vale.sh | sh
+
+      - name: Install Reviewdog
+        run: |
+          curl -sfL https://raw.githubusercontent.com/reviewdog/reviewdog/master/install.sh | sh -s -- -b /usr/local/bin
+
+      - name: Run Vale
+        run: |
+          vale . | reviewdog -efm="%f:%l:%c: %m" -name="vale" -reporter=github-pr-review -level=error
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
