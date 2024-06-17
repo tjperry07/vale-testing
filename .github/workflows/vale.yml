@@ -10,6 +10,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        
       - name: Get Changed Files
         id: get_changed_files
         uses: tj-actions/changed-files@v44
@@ -17,6 +18,7 @@ jobs:
           files: |
             **.md
           separator: ","
+          
       - name: Print Changed Markdown Files
         run: |
           echo "Changed markdown files: ${{ steps.get_changed_files.outputs.all_changed_files }}"
@@ -27,18 +29,23 @@ jobs:
           files: ${{ steps.get_changed_files.outputs.all_changed_files }}
           filter_mode: file
           separator: ","
-
-      - name: Copy Changed Files
+          
+      - name: Install Reviewdog
+        uses: reviewdog/action-setup@v1
+        
+      - name: Run Reviewdog
         run: |
-          mkdir -p original_files
-          mkdir -p corrected_files
-          for file in ${{ steps.get_changed_files.outputs.all_changed_files }}; do
-            echo "Copying $file to original_files/${file//\//_}.original"
-            cp "$file" "original_files/${file//\//_}.original"
-            echo "Copying vale_output_${file//\//_}_edit.md to corrected_files/${file//\//_}"
-            cp "vale_output_${file//\//_}_edit.md" "corrected_files/${file//\//_}"
-          done
-          echo "Original files:"
-          ls -l original_files
-          echo "Corrected files:"
-          ls -l corrected_files
+          reviewdog -f=vale -reporter=github-pr-review -fail-on-error=false < valelintoutputfile
+
+      - name: Setup Suggester
+        uses: reviewdog/action-suggester@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          level: warning
+          tool_name: vale
+          tool_description: "Vale Linter Suggestions"
+          tool_url: "https://github.com/errata-ai/vale"
+          
+      - name: Run Suggester
+        run: |
+          suggester < suggestionfile
