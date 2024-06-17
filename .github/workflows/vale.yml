@@ -27,7 +27,6 @@ jobs:
           files: ${{ steps.get_changed_files.outputs.all_changed_files }}
           filter_mode: file
           separator: ","
-          fail_on_error: true
 
       - name: Copy Changed Files
         run: |
