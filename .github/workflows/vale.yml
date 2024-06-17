@@ -25,5 +25,6 @@ jobs:
         uses: errata-ai/vale-action@reviewdog
         with:
           files: ${{ steps.get_changed_files.outputs.all_changed_files }}
-          filter_mode: file
           separator: ","
+          filter_mode: diff_context
+          reporter: github-pr-check
