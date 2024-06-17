@@ -27,3 +27,19 @@ jobs:
           files: ${{ steps.get_changed_files.outputs.all_changed_files }}
           filter_mode: file
           separator: ","
+          fail_on_error: true
+
+      - name: Copy Changed Files
+        run: |
+          mkdir -p original_files
+          mkdir -p corrected_files
+          for file in ${{ steps.get_changed_files.outputs.all_changed_files }}; do
+            echo "Copying $file to original_files/${file//\//_}.original"
+            cp "$file" "original_files/${file//\//_}.original"
+            echo "Copying vale_output_${file//\//_}_edit.md to corrected_files/${file//\//_}"
+            cp "vale_output_${file//\//_}_edit.md" "corrected_files/${file//\//_}"
+          done
+          echo "Original files:"
+          ls -l original_files
+          echo "Corrected files:"
+          ls -l corrected_files
