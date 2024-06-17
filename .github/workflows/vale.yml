@@ -28,4 +28,4 @@ jobs:
           separator: ","
           filter_mode: diff_context
           reporter: github-pr-review
-          token: ${{secrets.VALE_GITHUB_TOKEN}}
+          token: ${{secrets.GITHUB_TOKEN}} 
