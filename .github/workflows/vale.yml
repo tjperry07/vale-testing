@@ -23,19 +23,20 @@ jobs:
         run: |
           echo "Changed markdown files: ${{ steps.get_changed_files.outputs.all_changed_files }}"
 
-      - name: Vale Action
+      - name: Run Vale Linter
         uses: errata-ai/vale-action@reviewdog
         with:
           files: ${{ steps.get_changed_files.outputs.all_changed_files }}
           filter_mode: file
           separator: ","
-          
+          output: valelintoutput.json
+
       - name: Install Reviewdog
         uses: reviewdog/action-setup@v1
         
       - name: Run Reviewdog
         run: |
-          reviewdog -f=vale -reporter=github-pr-review -fail-on-error=false < valelintoutputfile
+          cat valelintoutput.json | reviewdog -f=vale -reporter=github-pr-review -fail-on-error=false
 
       - name: Setup Suggester
         uses: reviewdog/action-suggester@v1
@@ -48,4 +49,4 @@ jobs:
           
       - name: Run Suggester
         run: |
-          suggester < suggestionfile
+          cat valelintoutput.json | suggester
