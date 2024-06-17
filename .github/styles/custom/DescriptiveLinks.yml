@@ -1,0 +1,6 @@
+extends: existence
+message: "Use descriptive text for links. '%s'"
+ignorecase: true
+level: error
+tokens:
+  - '(?i)\[(learn more here)\]'

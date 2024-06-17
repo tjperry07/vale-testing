@@ -1,10 +1,11 @@
 extends: substitution
-
-message: "Avoid Latin abbreviations: '$1'. Consider using 'for example', 'that is', 'and so forth', or 'such as'."
-level: warning
+message: "Use '%s' instead of '%s'."
+link: 'https://developers.google.com/style/abbreviations'
+ignorecase: true
+level: error
+nonword: true
+action:
+  name: replace
 swap:
-  - e.g.: for example
-  - i.e.: for example
-  - i.e.: that is
-  - etc.: and so on
-  - N.B.: Note
+  '\b(?:eg|e\.g\.)(?=[\s,;])': for example
+  '\b(?:ie|i\.e\.)(?=[\s,;])': that is
