@@ -24,7 +24,7 @@ jobs:
 
       - name: Run Vale
         run: |
-          vale . --output=JSON > vale_output.json
+          vale . --output=JSON
 
       - name: suggester / vale
         uses: reviewdog/action-suggester@v1
