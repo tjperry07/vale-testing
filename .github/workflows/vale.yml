@@ -10,26 +10,21 @@ permissions:
   pull-requests: write
 
 jobs:
+          
   vale:
     name: runner / suggester / vale
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Install Vale
-        run: |
+      - uses: actions/checkout@v4
+      - run: |
           curl -L -o vale.tar.gz https://github.com/errata-ai/vale/releases/download/v2.17.0/vale_2.17.0_Linux_64-bit.tar.gz
           tar -xzf vale.tar.gz
           sudo mv vale /usr/local/bin/
-
-      - name: Run Vale
-        run: |
-          vale . --output=JSON
-
+        
+      - run: vale . --output=JSON
       - name: suggester / vale
         uses: reviewdog/action-suggester@v1
         with:
           tool_name: vale
-          level: warning
         env:
           REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
