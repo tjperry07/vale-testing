@@ -5,7 +5,7 @@ on:
 
 jobs:
   vale:
-    name: vale action
+    name: Vale Action
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -24,17 +24,15 @@ jobs:
           echo "Changed markdown files: ${{ steps.get_changed_files.outputs.all_changed_files }}"
 
       - name: Run Vale Linter
-        uses: errata-ai/vale-action@reviewdog
-        with:
-          files: ${{ steps.get_changed_files.outputs.all_changed_files }}
-          filter_mode: file
-          separator: ","
-          output: valelintoutput.json
+        run: |
+          echo ${{ steps.get_changed_files.outputs.all_changed_files }} | tr ',' '\n' | xargs -I {} vale --output=JSON {} > valelintoutput.json
 
       - name: Install Reviewdog
         uses: reviewdog/action-setup@v1
-        
+
       - name: Run Reviewdog
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cat valelintoutput.json | reviewdog -f=vale -reporter=github-pr-review -fail-on-error=false
 
