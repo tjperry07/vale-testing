@@ -11,27 +11,22 @@ permissions:
 
 jobs:
   vale:
-    name: vale action
+    name: runner / suggester / vale
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Get Changed Files
-        id: get_changed_files
-        uses: tj-actions/changed-files@v44
-        with:
-          files: |
-            **.md
-          separator: ","
-      - name: Print Changed Markdown Files
-        run: |
-          echo "Changed markdown files: ${{ steps.get_changed_files.outputs.all_changed_files }}"
+      - uses: actions/checkout@v3
 
-      - name: Vale Action
-        uses: errata-ai/vale-action@reviewdog
+      - name: Install Vale
+        run: |
+          curl -L -o vale.tar.gz https://github.com/errata-ai/vale/releases/download/v2.17.0/vale_2.17.0_Linux_64-bit.tar.gz
+          tar -xzf vale.tar.gz
+          sudo mv vale /usr/local/bin/
+
+      - name: Run Vale
+        run: vale --output=cli . 
+
+      - name: suggester / vale
+        uses: reviewdog/action-suggester@v1
         with:
-          files: ${{ steps.get_changed_files.outputs.all_changed_files }}
-          separator: ","
-          filter_mode: diff_context
-          reporter: github-pr-review
-          token: ${{secrets.GITHUB_TOKEN}} 
+          tool_name: vale
+          level: warning
