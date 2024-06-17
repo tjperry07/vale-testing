@@ -10,7 +10,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Get Changed Files
         id: get_changed_files
         uses: tj-actions/changed-files@v44
@@ -18,19 +17,13 @@ jobs:
           files: |
             **.md
           separator: ","
-      
       - name: Print Changed Markdown Files
         run: |
           echo "Changed markdown files: ${{ steps.get_changed_files.outputs.all_changed_files }}"
 
-      - name: Setup Reviewdog
-        uses: reviewdog/action-setup@v1
+      - name: Vale Action
+        uses: errata-ai/vale-action@reviewdog
         with:
-          reviewdog_version: latest
-
-      - name: Run Vale with Reviewdog
-        id: run_vale
-        run: |
-          vale --output=JSON ${{ steps.get_changed_files.outputs.all_changed_files }} > vale_output.json
-          cat vale_output.json | reviewdog -f=vale -name="vale" -reporter=github-pr-check -filter-mode=file -level=error -fail-on-error=false > reviewdog-output.log
-      
+          files: ${{ steps.get_changed_files.outputs.all_changed_files }}
+          filter_mode: file
+          separator: ","
