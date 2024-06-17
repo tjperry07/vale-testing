@@ -27,8 +27,5 @@ jobs:
           files: ${{ steps.get_changed_files.outputs.all_changed_files }}
           filter_mode: diff_context
           separator: ","
-      - name: Run action-suggester
-        uses: reviewdog/action-suggester@v1
-        with:
-          tool_name: 'vale'
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          reporter: github-pr-check
+
