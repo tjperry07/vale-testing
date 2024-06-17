@@ -9,3 +9,7 @@ abundance
 ## I am a heading
 
 This should return an error
+
+## second heading
+
+Testing
