@@ -23,7 +23,7 @@ jobs:
           sudo mv vale /usr/local/bin/
 
       - name: Run Vale
-        run: vale --output=cli . 
+        run: vale .
 
       - name: suggester / vale
         uses: reviewdog/action-suggester@v1
