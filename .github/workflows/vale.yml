@@ -15,28 +15,24 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with: 
+          fetch-depth: 0
 
         
-      - name: Get Changed Files
-        id: get_changed_files
-        uses: tj-actions/changed-files@v44
-        with:
-          files: |
-            **.md
-          separator: ","
-      - name: Print Changed Markdown Files
+      - name: Install Vale
         run: |
-          echo "Changed markdown files: ${{ steps.get_changed_files.outputs.all_changed_files }}"
-
-      - name: Vale Action
-        uses: errata-ai/vale-action@reviewdog
+          wget https://github.com/errata-ai/vale/releases/download/v2.27.0/vale_2.27.0_Linux_64-bit.tar.gz
+          tar -xvzf vale_2.27.0_Linux_64-bit.tar.gz
+          sudo mv vale /usr/local/bin/vale
+      
+      - name: Run reviewdog
+        uses: reviewdog/action-setup@v1
         with:
-          files: ${{ steps.get_changed_files.outputs.all_changed_files }}
-          separator: ","
-          filter_mode: diff_context
-          reporter: github-pr-review
-          fail_on_error: false
-          token: ${{secrets.GITHUB_TOKEN}}
-      - uses: reviewdog/action-suggester@v1
-        with:
-          tool_name: vale
+          reviewdog_version: latest
+      
+      - name: Run Vale with reviewdog
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          vale --output-file=vale-output.txt **/*.md
+          cat vale-output.txt | reviewdog -f=vale -reporter=github-pr-review
