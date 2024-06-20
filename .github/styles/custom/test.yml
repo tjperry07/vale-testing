@@ -1,0 +1,10 @@
+extends: existence
+message: "'%s' should be in snake_case."
+nonword: true
+level: error
+action:
+  name: suggest
+  params:
+    - CamelToSnake.tengo
+tokens:
+  - '[A-Z]\w+[A-Z]\w+'
