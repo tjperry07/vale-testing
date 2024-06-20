@@ -28,7 +28,7 @@ jobs:
         with:
           files: ${{ steps.get_changed_files.outputs.all_changed_files }}
           separator: ","
-          filter_mode: diff_context
+          filter_mode: file
           reporter: github-pr-review
           fail_on_error: true
           token: ${{secrets.GITHUB_TOKEN}}
