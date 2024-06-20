@@ -15,3 +15,12 @@ This should return an error
 Testing
 
 Container Engine
+"AaBbb"
+
+"A1Bcdef"
+
+"HelloWorld"
+
+aabdcdedf
+
+I am a repeat repeat word.

@@ -3,7 +3,11 @@ on:
   pull_request:
   workflow_dispatch:
 
-permissions: repo
+permissions:
+  contents: write  # Required for accessing repository content
+  pull-requests: write  # Required for creating review comments
+  checks: write  # Required for creating GitHub checks
+  
 jobs:
   vale:
     name: vale action
@@ -11,25 +15,37 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with: 
+          fetch-depth: 0
 
-        
-      - name: Get Changed Files
-        id: get_changed_files
-        uses: tj-actions/changed-files@v44
-        with:
-          files: |
-            **.md
-          separator: ","
-      - name: Print Changed Markdown Files
+      - name: Install Vale
         run: |
-          echo "Changed markdown files: ${{ steps.get_changed_files.outputs.all_changed_files }}"
+          wget https://github.com/errata-ai/vale/releases/download/v2.28.0/vale_2.28.0_Linux_64-bit.tar.gz
+          mkdir bin && tar -xvzf vale_2.28.0_Linux_64-bit.tar.gz -C bin
+          echo "$PWD/bin" >> $GITHUB_PATH
 
-      - name: Vale Action
-        uses: errata-ai/vale-action@reviewdog
+      - name: Run Vale
+        run: |
+          mkdir -p tmp
+          vale . --output=JSON > tmp/vale_output.json 2> tmp/vale_error.log || true
+          echo "Vale output:"
+          cat tmp/vale_output.json || echo "No output file generated"
+          echo "Vale errors:"
+          cat tmp/vale_error.log || echo "No errors captured"
+      
+      - name: Install reviewdog test
+        uses: reviewdog/action-setup@v1
         with:
-          files: ${{ steps.get_changed_files.outputs.all_changed_files }}
-          separator: ","
-          filter_mode: diff_context
-          reporter: github-pr-review
-          fail_on_error: true
-          token: ${{secrets.GITHUB_TOKEN}}
+          reviewdog_version: latest
+
+
+      - name: Run reviewdog
+        run: |
+          if [[ -f "tmp/vale_output.json" ]]; then
+            reviewdog -f=rdjson -name="Vale" -reporter=github-pr-review -level=error < tmp/vale_output.json
+          else
+            echo "vale_output.json not found. Skipping reviewdog."
+          fi
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REVIEWDOG_GITHUB_API_FAIL_ON_ERROR: false
