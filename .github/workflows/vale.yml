@@ -37,3 +37,16 @@ jobs:
           reporter: github-pr-review
           fail_on_error: true
           token: ${{secrets.GITHUB_TOKEN}}
+
+      - name: Convert to Reviewdog RDFormat
+        id: convert_to_rdformat
+        run: |
+          changed_files="${{ steps.get_changed_files.outputs.all_changed_files }}"
+          IFS=',' read -ra files <<< "$changed_files"
+          for file in "${files[@]}"; do
+            echo "{\"source\":\"$file\",\"message\":\"File changed.\",\"location\":{\"path\":\"$file\",\"range\":{\"start\":{\"line\":1,\"column\":1},\"end\":{\"line\":1,\"column\":1}}}}" >> rdformat_output.json
+          done
+
+      - name: Print RDFormat Output
+        run: |
+          cat rdformat_output.json
