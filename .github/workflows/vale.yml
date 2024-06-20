@@ -18,31 +18,11 @@ jobs:
         with: 
           fetch-depth: 0
 
-        
       - name: Install Vale
         run: |
-          wget https://github.com/errata-ai/vale/releases/download/v2.27.0/vale_2.27.0_Linux_64-bit.tar.gz
-          tar -xvzf vale_2.27.0_Linux_64-bit.tar.gz
-          sudo mv vale /usr/local/bin/vale
+          wget https://github.com/errata-ai/vale/releases/download/v2.28.0/vale_2.28.0_Linux_64-bit.tar.gz
+          mkdir bin && tar -xvzf vale_2.28.0_Linux_64-bit.tar.gz -C bin
+          export PATH=$PWD/bin:"$PATH"
 
-      - name: Install reviewdog
-        uses: reviewdog/action-setup@v1
-        with:
-          reviewdog_version: latest
-
-      - name: Get changed files
-        id: changed-files
-        run: |
-          echo "files=$(git diff --name-only origin/${{ github.base_ref }} ${{ github.sha }} | grep '\.md$' | tr '\n' ' ')" >> $GITHUB_OUTPUT
-
-      - name: Run Vale with reviewdog
-        env:
-          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          if [ -n "${{ steps.changed-files.outputs.files }}" ]; then
-            vale --output=JSON ${{ steps.changed-files.outputs.files }} | \
-            jq -r '.[] | .["checks"] | .[] | {message: .Message, location: {path: .File, range: {start: {line: .Line, column: .Span.start}, end: {line: .Line, column: .Span.end}}}, severity: (if .Severity == "error" then "ERROR" elif .Severity == "warning" then "WARNING" else "INFO" end)} | @json' | \
-            reviewdog -f=rdjson -reporter=github-pr-review
-          else
-            echo "No Markdown files changed in this PR."
-          fi
+      - name: Run Vale
+        run: vale README.md
