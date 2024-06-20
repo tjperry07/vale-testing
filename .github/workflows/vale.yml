@@ -41,11 +41,8 @@ jobs:
         run: |
           if [ -n "${{ steps.changed-files.outputs.files }}" ]; then
             vale --output=JSON ${{ steps.changed-files.outputs.files }} | \
-            reviewdog -f=vale -reporter=github-pr-review
-          else
-            echo "No Markdown files changed in this PR."
-          fi
-            cat vale-output.txt | reviewdog -f=vale -reporter=github-pr-review
+            jq -r '.[] | .["checks"] | .[] | {message: .Message, location: {path: .File, range: {start: {line: .Line, column: .Span.start}, end: {line: .Line, column: .Span.end}}}, severity: (if .Severity == "error" then "ERROR" elif .Severity == "warning" then "WARNING" else "INFO" end)} | @json' | \
+            reviewdog -f=rdjson -reporter=github-pr-review
           else
             echo "No Markdown files changed in this PR."
           fi
