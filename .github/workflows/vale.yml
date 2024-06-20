@@ -26,8 +26,9 @@ jobs:
 
       - name: Run Vale
         run: |
-          set -e
-          vale . --output=JSON
+          mkdir -p tmp
+          vale . --output=JSON > tmp/vale_output.json
+          cat tmp/vale_output.json
 
 
 
