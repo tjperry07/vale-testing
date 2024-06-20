@@ -3,7 +3,11 @@ on:
   pull_request:
   workflow_dispatch:
 
-permissions: repo
+permissions:
+  contents: write  # Required for accessing repository content
+  pull-requests: write  # Required for creating review comments
+  checks: write  # Required for creating GitHub checks
+  
 jobs:
   vale:
     name: vale action
@@ -11,25 +15,21 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with: 
+          fetch-depth: 0
 
-        
-      - name: Get Changed Files
-        id: get_changed_files
-        uses: tj-actions/changed-files@v44
-        with:
-          files: |
-            **.md
-          separator: ","
-      - name: Print Changed Markdown Files
+      - name: Install Vale
         run: |
-          echo "Changed markdown files: ${{ steps.get_changed_files.outputs.all_changed_files }}"
+          wget https://github.com/errata-ai/vale/releases/download/v2.28.0/vale_2.28.0_Linux_64-bit.tar.gz
+          mkdir bin && tar -xvzf vale_2.28.0_Linux_64-bit.tar.gz -C bin
+          echo "$PWD/bin" >> $GITHUB_PATH
 
-      - name: Vale Action
-        uses: errata-ai/vale-action@reviewdog
+    
+      - name: Install reviewdog
+        uses: reviewdog/action-setup@v1
         with:
-          files: ${{ steps.get_changed_files.outputs.all_changed_files }}
-          separator: ","
-          filter_mode: diff_context
-          reporter: github-pr-review
-          fail_on_error: true
-          token: ${{secrets.GITHUB_TOKEN}}
+          reviewdog_version: latest
+          
+      - name: Run Vale with reviewdog
+        run: |
+          vale . --output=JSON | reviewdog -f=vale -reporter=github-pr-review -filter-mode=nofilter -fail-on-error=false -name="Vale"
