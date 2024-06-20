@@ -24,7 +24,12 @@ jobs:
           wget https://github.com/errata-ai/vale/releases/download/v2.27.0/vale_2.27.0_Linux_64-bit.tar.gz
           tar -xvzf vale_2.27.0_Linux_64-bit.tar.gz
           sudo mv vale /usr/local/bin/vale
-      
+
+      - name: Install reviewdog
+        uses: reviewdog/action-setup@v1
+        with:
+          reviewdog_version: latest
+
       - name: Get changed files
         id: changed-files
         run: |
@@ -35,7 +40,11 @@ jobs:
           REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if [ -n "${{ steps.changed-files.outputs.files }}" ]; then
-            vale --output-file=vale-output.txt ${{ steps.changed-files.outputs.files }}
+            vale --output=JSON ${{ steps.changed-files.outputs.files }} | \
+            reviewdog -f=vale -reporter=github-pr-review
+          else
+            echo "No Markdown files changed in this PR."
+          fi
             cat vale-output.txt | reviewdog -f=vale -reporter=github-pr-review
           else
             echo "No Markdown files changed in this PR."
