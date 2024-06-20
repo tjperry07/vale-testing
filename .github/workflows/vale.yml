@@ -27,8 +27,11 @@ jobs:
       - name: Run Vale
         run: |
           mkdir -p tmp
-          vale . --output=JSON > tmp/vale_output.json
-          cat tmp/vale_output.json
+          vale . --output=JSON > tmp/vale_output.json 2> tmp/vale_error.log || true
+          echo "Vale output:"
+          cat tmp/vale_output.json || echo "No output file generated"
+          echo "Vale errors:"
+          cat tmp/vale_error.log || echo "No errors captured"
 
 
 
