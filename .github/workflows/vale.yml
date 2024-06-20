@@ -42,7 +42,7 @@ jobs:
       - name: Run reviewdog
         run: |
           if [[ -f "tmp/vale_output.json" ]]; then
-            reviewdog -f=vale -name="Vale" -reporter=github-pr-review -level=error -filter-mode=nofilter < tmp/vale_output.json
+            reviewdog -f=rdjson -name="Vale" -reporter=github-pr-review -level=error < tmp/vale_output.json
           else
             echo "vale_output.json not found. Skipping reviewdog."
           fi
