@@ -25,7 +25,5 @@ jobs:
           echo "$PWD/bin" >> $GITHUB_PATH
 
       - name: Run Vale
-        run: vale README.md --output=JSON output.json
-    
-      - name: Print Vale output
-        run: cat output.json
+        run: vale README.md --output=JSON
+
