@@ -27,9 +27,7 @@ jobs:
       - name: Run Vale
         run: |
           set -e
-          vale . --output=JSON > vale_output.json
-          cat vale_output.json
-        continue-on-error: true
+          vale . --output=JSON
 
 
 
