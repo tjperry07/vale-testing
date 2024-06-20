@@ -25,8 +25,9 @@ jobs:
           echo "$PWD/bin" >> $GITHUB_PATH
 
       - name: Run Vale
-        run: vale . --output=JSON > vale_output.json
-              cat vale_output.json
+        run: |
+          vale . --output=JSON > vale_output.json
+          cat vale_output.json
 
 
 
