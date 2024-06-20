@@ -32,6 +32,10 @@ jobs:
           cat tmp/vale_output.json || echo "No output file generated"
           echo "Vale errors:"
           cat tmp/vale_error.log || echo "No errors captured"
-
+      
+      - name: Install reviewdog
+        uses: reviewdog/action-setup@v1
+        with:
+          reviewdog_version: latest
 
 
