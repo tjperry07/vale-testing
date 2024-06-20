@@ -25,14 +25,18 @@ jobs:
           tar -xvzf vale_2.27.0_Linux_64-bit.tar.gz
           sudo mv vale /usr/local/bin/vale
       
-      - name: Run reviewdog
-        uses: reviewdog/action-setup@v1
-        with:
-          reviewdog_version: latest
-      
+      - name: Get changed files
+        id: changed-files
+        run: |
+          echo "files=$(git diff --name-only origin/${{ github.base_ref }} ${{ github.sha }} | grep '\.md$' | tr '\n' ' ')" >> $GITHUB_OUTPUT
+
       - name: Run Vale with reviewdog
         env:
           REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          vale --output-file=vale-output.txt **/*.md
-          cat vale-output.txt | reviewdog -f=vale -reporter=github-pr-review
+          if [ -n "${{ steps.changed-files.outputs.files }}" ]; then
+            vale --output-file=vale-output.txt ${{ steps.changed-files.outputs.files }}
+            cat vale-output.txt | reviewdog -f=vale -reporter=github-pr-review
+          else
+            echo "No Markdown files changed in this PR."
+          fi
