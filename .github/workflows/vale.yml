@@ -37,9 +37,6 @@ jobs:
           reporter: github-pr-review
           fail_on_error: false
           token: ${{secrets.GITHUB_TOKEN}}
-
-      - name: Convert Vale Output to rdformat
-        run: |
-          vale --output=rdjson ${{ steps.get_changed_files.outputs.all_changed_files }} > vale_output.rdjson
-          echo "Vale Output in rdjson format:"
-          cat vale_output.rdjson
+      - uses: reviewdog/action-suggester@v1
+        with:
+          tool_name: vale
