@@ -3,7 +3,11 @@ on:
   pull_request:
   workflow_dispatch:
 
-permissions: repo
+permissions:
+  contents: write  # Required for accessing repository content
+  pull-requests: write  # Required for creating review comments
+  checks: write  # Required for creating GitHub checks
+  
 jobs:
   vale:
     name: vale action
