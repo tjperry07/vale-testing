@@ -2,6 +2,8 @@
 
 Sure! Here's a sentence using "e.g.":
 
+swap this maybe etc.
+
 "When planning a trip, there are many factors to consider, e.g., budget, destination, and duration of stay."
 
 abundance
