@@ -11,10 +11,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Gem and Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.3'
         
       - name: Get Changed Files
         id: get_changed_files
