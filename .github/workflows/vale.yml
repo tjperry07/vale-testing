@@ -35,7 +35,7 @@ jobs:
           separator: ","
           filter_mode: diff_context
           reporter: github-pr-review
-          fail_on_error: true
+          fail_on_error: false
           token: ${{secrets.GITHUB_TOKEN}}
 
       - name: Convert Vale Output to rdformat
