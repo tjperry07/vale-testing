@@ -3,7 +3,11 @@ on:
   pull_request:
   workflow_dispatch:
 
-permissions: repo
+permissions:
+  contents: write  # Required for accessing repository content
+  pull-requests: write  # Required for creating review comments
+  checks: write  # Required for creating GitHub checks
+
 jobs:
   vale:
     name: vale action
@@ -11,8 +15,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-        
       - name: Get Changed Files
         id: get_changed_files
         uses: tj-actions/changed-files@v44
